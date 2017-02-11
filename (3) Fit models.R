@@ -75,4 +75,7 @@ PRDS$listing_id <- TEST$listing_id
 
 PRDS <- PRDS[c("listing_id","high","medium","low")]
 
-write.csv(PRDS, "submission1.csv", row.names = FALSE)
+# dont use github directory
+write.csv(PRDS, 
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission1.csv",
+          row.names = FALSE)
