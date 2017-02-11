@@ -102,7 +102,6 @@ full$duplicated <- as.numeric(duplicated(full$listing_id))
 full$count <- rep(1, nrow(full))
 
 
-full$LowTrafficDay <- as.Date(full$LowTrafficDay)
 full$created %>%
               as.POSIXct("%Y-%m-%d %H:%M:%S")
 
