@@ -58,10 +58,6 @@ full$dowCreated <- weekdays(as.Date(full$created))
 
 full$hourCreated <- hour(full$created) + minute(full$created)/60
 
-# columns created after initial tableau exploration
-full$LowTrafficDay <- ifelse(full$dowCreated %in% c("Sunday","Monday"),
-                             "Low", "Regular")
-
 # strip (most) html tags from the descriptions
 full$description <- cleanFun(full$description)
 
@@ -107,9 +103,26 @@ features <- unlist(full$features)
 features <- tolower(features)
 features <- removePunctuation(features)
 
-top10Features <- data.frame(table(features))
-top10Features <- top10Features[with(top10Features, order(-Freq)),]
-top10Features <- top10Features$features[1:10]
+top3Features <- data.frame(table(features))
+top3Features <- top3Features[with(top3Features, order(-Freq)),]
+top3Features <- as.character(top3Features$features[1:3])
+featureCols <- vector("list", length = 3)
+for(x in 1:length(top3Features)){
+  as.numeric(
+             grepl(top3Features[x],
+                   full$features)) -cx> featureCols[[x]]
+}
+featureCols <- data.frame((featureCols))
+names(featureCols) <- top3Features
+featureCols$listing_id <- full$listing_id
+
+full <- full_join(full, featureCols)
+
+
+# get "capslock score"
+full$CAPS <- stringr::str_count(full$description, "\\b[A-Z]{2,}\\b")
+
+
 
 ##############
 
