@@ -1,10 +1,10 @@
-require("dplyr")
-require("jsonlite")
-require("purrr")
-require("tm")
-require("lubridate")
-require("reshape2")
-require("stringr")
+library("dplyr")
+library("jsonlite")
+library("purrr")
+library("tm")
+library("lubridate")
+library("reshape2")
+library("stringr")
 g <- glimpse
 
 # function to remove html tags

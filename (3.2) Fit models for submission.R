@@ -178,3 +178,52 @@ KNN.PREDS.prob <-
 write.csv(KNN.PREDS.prob,
           "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission3.csv",
           row.names= FALSE)
+
+# -------------------------------------
+# generalized boosted regression from Xavier Van Ausloos's post
+# https://www.kaggle.com/vanausloos/two-sigma-connect-rental-listing-inquiries/model1-generalized-boosted-regression-model/discussion
+# --------------------------------------
+library("h2o")
+h2o.init(nthreads = -1)
+
+GBM.predictors <- c("hourCreated","price","numPhotos","numFeatures",
+                    "CAPS","bathrooms","bedrooms",
+                    "latitude","longitude","nwordDesc")
+
+TRAIN <- as.h2o(full[c("interest_level",
+                       GBM.predictors)], destination.frame = "")
+
+#TRAIN THE GBM MODEL 
+gbm1 <- h2o.gbm(x = GBM.predictors,
+                y = "interest_level",
+                training_frame = TRAIN,
+                distribution = "multinomial",
+                model_id = "gbm1",
+                #,nfolds = 5
+                ntrees = 2000,
+                learn_rate = 0.01,
+                max_depth = 7,
+                min_rows = 20,
+                sample_rate = 0.7,
+                col_sample_rate = 0.7,
+                stopping_rounds = 5,
+                stopping_metric = "logloss",
+                stopping_tolerance = 0,
+                seed=321
+)
+
+TEST.h2o <- as.h2o(TEST[GBM.predictors], destination.frame = "")
+
+GBM.PREDS <- h2o.predict(gbm1, TEST.h2o[GBM.predictors])
+
+GBM.PREDS <- data.frame(as.matrix(GBM.PREDS))
+
+GBM.PREDS$listing_id <- TEST$listing_id
+
+GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
+
+write.csv(GBM.PREDS,
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission4.csv",
+          row.names= FALSE)
+
+
