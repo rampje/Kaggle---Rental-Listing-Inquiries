@@ -23,6 +23,35 @@ danjRead <- function(directory){
 testDataLocation <- "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/test.json/test.json"
 TEST <- danjRead(testDataLocation)
 
+# code target variable appriopriately as ordinal factor
+TEST$interest_level <- factor(TEST$interest_level, c("low","medium","high"))
+
+# create a few basic columns
+TEST$numPhotos <- sapply(TEST$photos, length)
+
+TEST$numFeatures <- sapply(TEST$features, length)
+
+# convert "created" column to recognized date format
+TEST$created <- as.POSIXct(TEST$created, "%Y-%m-%d %H:%M:%S")
+
+
+# columns created after initial tableau exploration
+TEST$LowTrafficDay <- weekdays(as.Date(TEST$created))
+TEST$LowTrafficDay <- ifelse(TEST$LowTrafficDay %in% c("Sunday","Monday"),
+                             "Low", "Regular")
+
+# strip (most) html tags from the descriptions
+TEST$description <- cleanFun(TEST$description)
+
+# get description character count
+TEST$ncharDesc <- nchar(TEST$description)
+
+# get description word count 
+stplt <- function(x){strsplit(x, " ")}
+TEST$nwordDesc <- sapply(TEST$description, stplt)
+TEST$nwordDesc <- sapply(TEST$nwordDesc, removePunctuation)
+TEST$nwordDesc <- sapply(TEST$nwordDesc, length)
+
 # -----------------------------------------------------------------
 # fit basic ordinal logistic regression model to part of test data
 # ----------------------------------------------------------------
@@ -78,4 +107,29 @@ PRDS <- PRDS[c("listing_id","high","medium","low")]
 # dont use github directory
 write.csv(PRDS, 
           "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission1.csv",
+          row.names = FALSE)
+
+# -------------------------------------------------------------
+# OLR with more predictors for ALL test data
+# -------------------------------------------------------------
+
+# generate features on test data
+OLR2 <- lrm(interest_level ~ price + ncharDesc + 
+                             numFeatures + numPhotos,
+             data = full)
+
+PRDS2 <- predict(OLR2, TEST, type = "fitted")
+
+PRDS2 <- data.frame(PRDS2)
+names(PRDS2) <- c("medium", "high")
+
+# calculate low column
+PRDS2$low <- 1 - (PRDS2$medium + PRDS2$high)
+
+PRDS2$listing_id <- TEST$listing_id
+
+PRDS2 <- PRDS2[c("listing_id","high","medium","low")]
+
+write.csv(PRDS2,
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission2.csv",
           row.names = FALSE)
