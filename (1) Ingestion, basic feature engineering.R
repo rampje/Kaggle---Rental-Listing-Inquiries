@@ -1,10 +1,14 @@
 require("dplyr")
 require("jsonlite")
 require("purrr")
+require("tm")
 g <- glimpse
 
-fileLocation <- "C://Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/train.json/train.json"
-
+# function to remove html tags
+# http://stackoverflow.com/questions/17227294/removing-html-tags-from-a-string-in-r
+cleanFun <- function(htmlString) {
+  return(gsub("<.*?>", "", htmlString))
+}
 # proper way to load data in from kaggle post: 
 # -- https://www.kaggle.com/danjordan/two-sigma-connect-rental-listing-inquiries/how-to-correctly-load-data-into-r/discussion
 danjRead <- function(directory){
@@ -17,6 +21,8 @@ danjRead <- function(directory){
   vars <- setdiff(names(data), c("photos", "features"))
   data <- map_at(data, vars, unlist) %>% tibble::as_tibble(.)
 }
+
+fileLocation <- "C://Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/train.json/train.json"
 
 full <- danjRead(fileLocation)
 
@@ -37,3 +43,39 @@ full$LowTrafficDay <- weekdays(as.Date(full$created))
 full$LowTrafficDay <- ifelse(full$LowTrafficDay %in% c("Sunday","Monday"),
                              "Low", "Regular")
 
+# strip (most) html tags from the descriptions
+full$description <- cleanFun(full$description)
+
+# get description character count
+full$ncharDesc <- nchar(full$description)
+
+# 
+stplt <- function(x){strsplit(x, " ")}
+full$nwordDesc <- sapply(full$description, stplt)
+full$nwordDesc <- sapply(full$nwordDesc, removePunctuation)
+full$nwordDesc <- sapply(full$nwordDesc, length)
+
+
+
+
+# outlier removal
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fulltableau <- full[!(names(full) %in% c("features","photos"))]
+# write to for viewing in tableau
+write.csv(fulltableau,
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/data1.csv",
+          row.names = FALSE)
