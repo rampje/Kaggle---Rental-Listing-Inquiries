@@ -4,9 +4,13 @@
 # ! ------------------------------------------------------------
 
 
-require("caret")
-require("rms") # installing required dependences = T
-require("tm")
+library("caret")
+library("rms") # installing required dependences = T
+library("tm")
+library("stringr")
+library("lubridate")
+library("class")
+library("kknn")
 
 danjRead <- function(directory){
   packages <- c("jsonlite","dplyr","purrr")
@@ -24,9 +28,6 @@ danjRead <- function(directory){
 testDataLocation <- "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/test.json/test.json"
 TEST <- danjRead(testDataLocation)
 
-# code target variable appriopriately as ordinal factor
-TEST$interest_level <- factor(TEST$interest_level, c("low","medium","high"))
-
 # create a few basic columns
 TEST$numPhotos <- sapply(TEST$photos, length)
 
@@ -35,11 +36,18 @@ TEST$numFeatures <- sapply(TEST$features, length)
 # convert "created" column to recognized date format
 TEST$created <- as.POSIXct(TEST$created, "%Y-%m-%d %H:%M:%S")
 
+# month listing was created
+TEST$monthCreated <- months(TEST$created)
 
-# columns created after initial tableau exploration
-TEST$LowTrafficDay <- weekdays(as.Date(TEST$created))
-TEST$LowTrafficDay <- ifelse(TEST$LowTrafficDay %in% c("Sunday","Monday"),
-                             "Low", "Regular")
+# day of week listing was created
+TEST$dowCreated <- weekdays(as.Date(TEST$created))
+
+TEST$hourCreated <- hour(TEST$created) + minute(TEST$created)/60
+
+# TWT flag for busier days (2/11/2017)
+TEST$TWT <- ifelse(TEST$dowCreated %in% c("Tuesday","Wednesday","Thursday"),
+                   1, 0)
+
 
 # strip (most) html tags from the descriptions
 TEST$description <- cleanFun(TEST$description)
@@ -62,6 +70,8 @@ TEST$ShortDescription <- as.factor(TEST$ShortDescription)
 # description Score
 TEST$DescriptionScore <- TEST$nwordDesc / mean(TEST$nwordDesc)
 
+# get "capslock score"
+TEST$CAPS <- stringr::str_count(TEST$description, "\\b[A-Z]{2,}\\b")
 
 # -------------------------------------------------------------
 # fit basic ordinal logistic regression model for ALL test data
@@ -142,3 +152,29 @@ PRDS3 <- PRDS3[c("listing_id","high","medium","low")]
 write.csv(PRDS3,
           "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission3.csv",
           row.names = FALSE)
+
+# --------------------------------------------------------------
+# knn with several numerical predictors
+# --------------------------------------------------------
+
+library("kknn")
+
+KNN.predictors <- c("hourCreated","price","numPhotos","numFeatures",
+                    "DescriptionScore", "CAPS","bathrooms","bedrooms",
+                    "latitude","longitude","nwordDesc")
+
+KNN.PREDS <- kknn(full$interest_level ~ ., 
+                  train = full[KNN.predictors],
+                  test = TEST[KNN.predictors],
+                  k = 20)
+
+KNN.PREDS.prob <- data.frame(KNN.PREDS$prob)
+
+KNN.PREDS.prob$listing_id <- TEST$listing_id
+
+KNN.PREDS.prob <- 
+  KNN.PREDS.prob[c("listing_id","high","medium","low")]
+
+write.csv(KNN.PREDS.prob,
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission3.csv",
+          row.names= FALSE)
