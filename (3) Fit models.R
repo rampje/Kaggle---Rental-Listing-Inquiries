@@ -6,6 +6,7 @@
 
 require("caret")
 require("rms") # installing required dependences = T
+require("tm")
 
 danjRead <- function(directory){
   packages <- c("jsonlite","dplyr","purrr")
@@ -51,6 +52,15 @@ stplt <- function(x){strsplit(x, " ")}
 TEST$nwordDesc <- sapply(TEST$description, stplt)
 TEST$nwordDesc <- sapply(TEST$nwordDesc, removePunctuation)
 TEST$nwordDesc <- sapply(TEST$nwordDesc, length)
+
+# short description flag
+TEST$ShortDescription <- as.character(ifelse(TEST$nwordDesc < 10,
+                                             1, 0))
+TEST$ShortDescription <- as.character(TEST$ShortDescription)
+TEST$ShortDescription <- as.factor(TEST$ShortDescription)
+
+# description Score
+TEST$DescriptionScore <- TEST$nwordDesc / mean(TEST$nwordDesc)
 
 # -----------------------------------------------------------------
 # fit basic ordinal logistic regression model to part of test data
@@ -113,18 +123,24 @@ write.csv(PRDS,
 # OLR with more predictors for ALL test data
 # -------------------------------------------------------------
 
-# generate features on test data
-OLR2 <- lrm(interest_level ~ price + ncharDesc + 
-                             numFeatures + numPhotos,
-             data = full)
+# model prep
+full.olr2 <- full[full$price < 7000,]
 
-PRDS2 <- predict(OLR2, TEST, type = "fitted")
+# generate features on test data
+OLR2 <- lrm(interest_level ~ price + DescriptionScore,
+             data = full.olr2)
+
+PRDS2 <- predict(OLR2, data.frame(TEST[c("price","DescriptionScore")]), type = "fitted")
 
 PRDS2 <- data.frame(PRDS2)
 names(PRDS2) <- c("medium", "high")
 
 # calculate low column
 PRDS2$low <- 1 - (PRDS2$medium + PRDS2$high)
+
+# need to understand why model did this 
+# what assumptions did i violate? (2/12/2017)
+PRDS2$low[PRDS2$low < 0] <- 0
 
 PRDS2$listing_id <- TEST$listing_id
 

@@ -4,6 +4,7 @@ require("purrr")
 require("tm")
 require("lubridate")
 require("reshape2")
+require("stringr")
 g <- glimpse
 
 # function to remove html tags
@@ -110,7 +111,7 @@ featureCols <- vector("list", length = 3)
 for(x in 1:length(top3Features)){
   as.numeric(
              grepl(top3Features[x],
-                   full$features)) -cx> featureCols[[x]]
+                   full$features)) -> featureCols[[x]]
 }
 featureCols <- data.frame((featureCols))
 names(featureCols) <- top3Features
@@ -122,7 +123,16 @@ full <- full_join(full, featureCols)
 # get "capslock score"
 full$CAPS <- stringr::str_count(full$description, "\\b[A-Z]{2,}\\b")
 
+# short description flag
+full$ShortDescription <- ifelse(full$nwordDesc < 10,
+                                1, 0)
+full$ShortDescription <- as.character(full$ShortDescription)
+full$ShortDescription <- as.factor(full$ShortDescription)
 
+# feature described by TusharGupta on Kaggle
+# https://www.kaggle.com/c/two-sigma-connect-rental-listing-inquiries/discussion/28725
+full$DescriptionScore <- full$nwordDesc / mean(full$nwordDesc)
+full$logDS <- log(full$DescriptionScore)
 
 ##############
 
