@@ -80,8 +80,8 @@ full$display_address <- as.character(full$display_address)
 topAddress <- data.frame(table(full$display_address))
 topAddress <- topAddress[with(topAddress, order(-Freq)),]
 
-top10Addresses <- as.character(topAddress$Var1[1:10])
-addressCols <- vector("list", length = 10)
+top10Addresses <- as.character(topAddress$Var1[1:3])
+addressCols <- vector("list", length = 3)
 for(x in 1:length(top10Addresses)){
   as.numeric(
        grepl(top10Addresses[x], 
@@ -93,7 +93,25 @@ addressCols$listing_id <- full$listing_id
 
 full <- full_join(full, addressCols)
 
+# TWT flag for busier days (2/11/2017)
+full$TWT <- ifelse(full$dowCreated %in% c("Tuesday","Wednesday","Thursday"),
+                   1, 0)
 
+# morningList flag for busier time of day (2/11/2017)
+full$morningList <- ifelse(full$hourCreated >= 1 &
+                          full$hourCreated < 7,
+                          1, 0)
+
+# most common features
+features <- unlist(full$features)
+features <- tolower(features)
+features <- removePunctuation(features)
+
+top10Features <- data.frame(table(features))
+top10Features <- top10Features[with(top10Features, order(-Freq)),]
+top10Features <- top10Features$features[1:10]
+
+##############
 
 # for when I want to explore data in tableau
 # ------
