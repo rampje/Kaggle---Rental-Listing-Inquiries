@@ -140,10 +140,6 @@ full$logDS <- log(full$DescriptionScore)
 # ------
 fulltableau <- full[!(names(full) %in% c("features","photos"))]
 
-#idvar <- names(full)[!(names(full) %in% top10Addresses)]
-#fulltableau <- melt(full, id.vars = idvar)
-#fulltableau$duplicated <- duplicated(as.numeric(fulltableau$duplicated))
-#fulltableau$created <- as.character(fulltableau$created, format = "%Y-%m-%d")
 # write to for viewing in tableau
 write.csv(fulltableau,
           "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/datamelt2.csv",

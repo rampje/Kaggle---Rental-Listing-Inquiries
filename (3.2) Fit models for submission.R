@@ -199,9 +199,10 @@ gbm1 <- h2o.gbm(x = GBM.predictors,
                 training_frame = TRAIN,
                 distribution = "multinomial",
                 model_id = "gbm1",
-                #,nfolds = 5
-                ntrees = 2000,
-                learn_rate = 0.01,
+                nfolds = 10,
+                ntrees = 1000,
+                nbins = 10,
+                learn_rate = 0.3,
                 max_depth = 7,
                 min_rows = 20,
                 sample_rate = 0.7,
@@ -223,7 +224,10 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission4.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission6.csv",
           row.names= FALSE)
 
-
+# -------------------------------------
+# h
+# https://www.kaggle.com/vanausloos/two-sigma-connect-rental-listing-inquiries/model1-generalized-boosted-regression-model/discussion
+# --------------------------------------
