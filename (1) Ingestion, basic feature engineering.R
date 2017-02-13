@@ -57,7 +57,8 @@ full$monthCreated <- months(full$created)
 # day of week listing was created
 full$dowCreated <- weekdays(as.Date(full$created))
 
-full$hourCreated <- hour(full$created) + minute(full$created)/60
+full$hourCreated <- lubridate::hour(full$created) + 
+                    lubridate::minute(full$created)/60
 
 # strip (most) html tags from the descriptions
 full$description <- cleanFun(full$description)

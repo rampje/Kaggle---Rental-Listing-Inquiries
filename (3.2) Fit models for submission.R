@@ -42,7 +42,8 @@ TEST$monthCreated <- months(TEST$created)
 # day of week listing was created
 TEST$dowCreated <- weekdays(as.Date(TEST$created))
 
-TEST$hourCreated <- hour(TEST$created) + minute(TEST$created)/60
+TEST$hourCreated <- lubridate::hour(TEST$created) + 
+                    lubridate::minute(TEST$created)/60
 
 # TWT flag for busier days (2/11/2017)
 TEST$TWT <- ifelse(TEST$dowCreated %in% c("Tuesday","Wednesday","Thursday"),
@@ -199,10 +200,10 @@ gbm1 <- h2o.gbm(x = GBM.predictors,
                 training_frame = TRAIN,
                 distribution = "multinomial",
                 model_id = "gbm1",
-                nfolds = 10,
-                ntrees = 1000,
-                nbins = 10,
-                learn_rate = 0.3,
+               # nfolds = 10,
+                ntrees = 4000,
+                #nbins = 10,
+                learn_rate = 0.01,
                 max_depth = 7,
                 min_rows = 20,
                 sample_rate = 0.7,
@@ -224,7 +225,7 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission6.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission7.csv",
           row.names= FALSE)
 
 # -------------------------------------
