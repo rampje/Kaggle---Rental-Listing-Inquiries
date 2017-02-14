@@ -2,8 +2,11 @@ library("jpeg")
 
 setwd("C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries")
 
+ids <- rep(unique(full$listing_id), sapply(full$photos, length))
+photolinks <- unlist(full$photos)
+
 # pre-created list with right dimensions
-photodata <- vector("list", length = nrow(full))
+photodata <- vector("list", length = length(ids))
 
 # create a temp file
 f <- tempfile()
