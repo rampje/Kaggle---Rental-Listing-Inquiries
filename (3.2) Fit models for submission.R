@@ -11,6 +11,7 @@ library("stringr")
 library("lubridate")
 library("class")
 library("kknn")
+library("syuzhet")
 
 danjRead <- function(directory){
   packages <- c("jsonlite","dplyr","purrr")
@@ -73,6 +74,13 @@ TEST$DescriptionScore <- TEST$nwordDesc / mean(TEST$nwordDesc)
 
 # get "capslock score"
 TEST$CAPS <- stringr::str_count(TEST$description, "\\b[A-Z]{2,}\\b")
+
+# get sentiments
+SENTIMENT <- get_nrc_sentiment(TEST$description)
+SENTIMENTs <- names(SENTIMENT)
+SENTIMENT$listing_id <- TEST$listing_id
+
+TEST <- full_join(TEST, SENTIMENT)
 
 # -------------------------------------------------------------
 # fit basic ordinal logistic regression model for ALL test data
@@ -187,8 +195,10 @@ write.csv(KNN.PREDS.prob,
 library("h2o")
 h2o.init(nthreads = -1)
 
-GBM.predictors <- c("hourCreated","price","numPhotos",
-                    "latitude","longitude","nwordDesc")
+GBM.predictors <- c("hourCreated","price","numPhotos","numFeatures",
+                    "DescriptionScore", "CAPS","bathrooms","bedrooms",
+                    "latitude","longitude","TWT","nwordDesc",
+                    sentiments)
 
 TRAIN <- as.h2o(full[c("interest_level",
                        GBM.predictors)], destination.frame = "")
@@ -200,7 +210,7 @@ gbm1 <- h2o.gbm(x = GBM.predictors,
                 distribution = "multinomial",
                 model_id = "gbm1",
                # nfolds = 10,
-                ntrees = 2000,
+                ntrees = 4000,
                 #nbins = 10,
                 learn_rate = 0.01,
                 max_depth = 7,
@@ -224,7 +234,7 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission8.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission10.csv",
           row.names= FALSE)
 
 
@@ -252,7 +262,6 @@ PCs2 <- names(PCA2)
 
 library("h2o")
 h2o.init(nthreads = -1)
-
 
 
 TRAIN <- as.h2o(PCA1[c("interest_level",
