@@ -187,8 +187,7 @@ write.csv(KNN.PREDS.prob,
 library("h2o")
 h2o.init(nthreads = -1)
 
-GBM.predictors <- c("hourCreated","price","numPhotos","numFeatures",
-                    "CAPS","bathrooms","bedrooms",
+GBM.predictors <- c("hourCreated","price","numPhotos",
                     "latitude","longitude","nwordDesc")
 
 TRAIN <- as.h2o(full[c("interest_level",
@@ -201,7 +200,7 @@ gbm1 <- h2o.gbm(x = GBM.predictors,
                 distribution = "multinomial",
                 model_id = "gbm1",
                # nfolds = 10,
-                ntrees = 4000,
+                ntrees = 2000,
                 #nbins = 10,
                 learn_rate = 0.01,
                 max_depth = 7,
@@ -225,7 +224,7 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission7.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission8.csv",
           row.names= FALSE)
 
 # -------------------------------------
