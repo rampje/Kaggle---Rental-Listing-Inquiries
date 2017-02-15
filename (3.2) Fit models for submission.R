@@ -227,7 +227,69 @@ write.csv(GBM.PREDS,
           "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission8.csv",
           row.names= FALSE)
 
-# -------------------------------------
-# h
-# https://www.kaggle.com/vanausloos/two-sigma-connect-rental-listing-inquiries/model1-generalized-boosted-regression-model/discussion
-# --------------------------------------
+
+#-----------------------------------------------------------------------
+# Generalized boosted regression with principle components as predictors
+#------------------------------------------------------------------------
+
+# get principle components 
+PCA.COLS <- c("hourCreated","price","numPhotos","numFeatures",
+              "DescriptionScore", "CAPS","bathrooms","bedrooms",
+              "latitude","longitude","TWT","nwordDesc")
+
+FULL.PCA <- full[PCA.COLS]
+PCA1 <- prcomp(FULL.PCA, scale = TRUE)
+PCA1 <- data.frame(PCA1$x)
+PCs1 <- names(PCA1)
+PCA1$interest_level <- full$interest_level
+
+TEST.PCA <- TEST[PCA.COLS]
+PCA2 <- prcomp(TEST.PCA, scale = TRUE)
+PCA2 <- data.frame(PCA2$x)
+PCs2 <- names(PCA2)
+
+
+
+library("h2o")
+h2o.init(nthreads = -1)
+
+
+
+TRAIN <- as.h2o(PCA1[c("interest_level",
+                       PCs)], destination.frame = "")
+
+#TRAIN THE GBM MODEL 
+gbm.pca <- h2o.gbm(x = PCs1,
+                y = "interest_level",
+                training_frame = TRAIN,
+                distribution = "multinomial",
+                model_id = "gbm1",
+                # nfolds = 10,
+                ntrees = 2000,
+                #nbins = 10,
+                learn_rate = 0.01,
+                max_depth = 7,
+                min_rows = 20,
+                sample_rate = 0.7,
+                col_sample_rate = 0.7,
+                stopping_rounds = 5,
+                stopping_metric = "logloss",
+                stopping_tolerance = 0,
+                seed=321
+)
+
+TEST.h2o <- as.h2o(PCA2[PCs2], destination.frame = "")
+
+GBM.PREDS <- h2o.predict(gbm.pca, TEST.h2o[PCs2])
+
+GBM.PREDS <- data.frame(as.matrix(GBM.PREDS))
+
+GBM.PREDS$listing_id <- TEST$listing_id
+
+GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
+
+write.csv(GBM.PREDS,
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission9.csv",
+          row.names= FALSE)
+
+
