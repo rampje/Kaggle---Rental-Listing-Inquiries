@@ -135,7 +135,15 @@ full$ShortDescription <- as.factor(full$ShortDescription)
 full$DescriptionScore <- full$nwordDesc / mean(full$nwordDesc)
 full$logDS <- log(full$DescriptionScore)
 
-##############
+# composite of positive and negative scores
+full$posnegScore <- ifelse(full$positive == full$negative,
+                           0, 
+                           ifelse(full$positive > full$negative,
+                                  full$positive,
+                                  -1 * full$negative))
+
+
+
 
 # for when I want to explore data in tableau
 # ------

@@ -13,6 +13,11 @@ library("class")
 library("kknn")
 library("syuzhet")
 
+
+# --------------------------------------
+# read test data in and create features
+# --------------------------------------
+
 danjRead <- function(directory){
   packages <- c("jsonlite","dplyr","purrr")
   purrr::walk(packages, library, character.only = TRUE, warn.conflicts = FALSE)
@@ -79,8 +84,16 @@ TEST$CAPS <- stringr::str_count(TEST$description, "\\b[A-Z]{2,}\\b")
 SENTIMENT <- get_nrc_sentiment(TEST$description)
 SENTIMENTs <- names(SENTIMENT)
 SENTIMENT$listing_id <- TEST$listing_id
+SENTIMENT$sentimentScore <- get_sentiment(TEST$description)
 
 TEST <- full_join(TEST, SENTIMENT)
+
+# composite of positive and negative scores
+TEST$posnegScore <- ifelse(TEST$positive == TEST$negative,
+                           0, 
+                           ifelse(TEST$positive > TEST$negative,
+                                  TEST$positive,
+                                  -1 * TEST$negative))
 
 # -------------------------------------------------------------
 # fit basic ordinal logistic regression model for ALL test data
@@ -196,9 +209,9 @@ library("h2o")
 h2o.init(nthreads = -1)
 
 GBM.predictors <- c("hourCreated","price","numPhotos","numFeatures",
-                    "DescriptionScore", "CAPS","bathrooms","bedrooms",
+                    "CAPS","bathrooms","bedrooms",
                     "latitude","longitude","nwordDesc",
-                    "positive","negative")
+                    "sentimentScore","posnegScore", "surprise")
 
 TRAIN <- as.h2o(full[c("interest_level",
                        GBM.predictors)], destination.frame = "")
@@ -234,7 +247,7 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission11.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission12.csv",
           row.names= FALSE)
 
 
