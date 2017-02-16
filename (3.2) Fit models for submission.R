@@ -197,8 +197,8 @@ h2o.init(nthreads = -1)
 
 GBM.predictors <- c("hourCreated","price","numPhotos","numFeatures",
                     "DescriptionScore", "CAPS","bathrooms","bedrooms",
-                    "latitude","longitude","TWT","nwordDesc",
-                    sentiments)
+                    "latitude","longitude","nwordDesc",
+                    "positive","negative")
 
 TRAIN <- as.h2o(full[c("interest_level",
                        GBM.predictors)], destination.frame = "")
@@ -234,7 +234,7 @@ GBM.PREDS$listing_id <- TEST$listing_id
 GBM.PREDS <- GBM.PREDS[c("listing_id","high","medium","low")]
 
 write.csv(GBM.PREDS,
-          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission10.csv",
+          "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/submission11.csv",
           row.names= FALSE)
 
 
