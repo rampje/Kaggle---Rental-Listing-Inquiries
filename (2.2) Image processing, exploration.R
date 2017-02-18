@@ -9,6 +9,17 @@ GetPhotoData <- function(sequence){
   fetchLinks <- photolinks[sequence]
   fileName <- fetchIDs[length(fetchIDs)]
   
+  # dimension table columns
+  w <- numeric(length(fetchIDs)) # photo width
+  h <- numeric(length(fetchIDs)) # photo height
+  i1 <- character(length(fetchIDs)) # listing ids
+  
+  # rgb table columns
+  r <- numeric() # red values
+  g <- numeric() # green values
+  b <- numeric() # blue values 
+  i2 <- character() # listing ids
+  
   # create a temp file
   f <- tempfile()
   
@@ -24,13 +35,12 @@ GetPhotoData <- function(sequence){
         url <- full$photos[[x]][y] # bizarre list referencing issues here
         
         # a way to keep the loop going if download fails
-        try.parameter <- try(download.file(url, f, mode="wb"))
+        try.parameter <- try(download.file(url, f, mode= "wb"))
         
         if("try-error" %in% class(try.parameter)){
           ls[[y]] <- NULL
         } else {
           ls[[y]] <- readJPEG(f)
-          
         }
       }
     }
@@ -44,7 +54,6 @@ GetPhotoData <- function(sequence){
   
 }
 
-
 setwd("C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries")
 
 photoDir <- "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/PhotoData"
@@ -53,9 +62,15 @@ photoDir <- "C:/Users/Warner/Desktop/Projects/Kaggle - Rental Listing Inquiries/
 csvFiles <- list.files(photoDir)
 
 
-# pre-created list with right dimensions (02/18/2017 not 
-# feasible to do this in memory
-#photodata <- vector("list", length = length(ids))
+
+
+# test code which will be removed (2/18/2017)
+a <- download.file("https://photos.renthop.com/2/7170325_3bb5ac84a5a10227b17b273e79bd77b4.jpg",
+                   f, mode = "wb")
+b <- readJPEG(f)
+
+dim(b)[1] # width
+dim(b)[2] # height
 
 
 
